@@ -1,11 +1,43 @@
 var camera = {
-	C: { x: 1, y: 1, z: 2 },
-	N: { x: -1, y: -1, z: -1 },
-	V: { x: 0, y: 0, z: 1 },
-	d: 1,
+	C: { x: 0, y: -500, z: 500 },
+	N: { x: 10, y: 10, z: 200 },
+	V: { x: 0, y: 0, z: 10 },
+	d: 80,
 	hX: 1,
 	hY: 1
 };
+
+var vertices = [];
+var triangulos = [];
+
+function $ (element) {
+	return document.querySelector(element);
+}
+
+function update () {
+	camera = {
+		C: {
+			x: parseFloat($("#cameraCX").value),
+			y: parseFloat($("#cameraCY").value),
+			z: parseFloat($("#cameraCZ").value),
+		},
+		N: {
+			x: parseFloat($("#cameraNX").value),
+			y: parseFloat($("#cameraNY").value),
+			z: parseFloat($("#cameraNZ").value),
+		},
+		V: {
+			x: parseFloat($("#cameraVX").value),
+			y: parseFloat($("#cameraVY").value),
+			z: parseFloat($("#cameraVZ").value),
+		},
+		d: parseFloat($("#cameraD").value),
+		hX: parseFloat($("#cameraHX").value),
+		hY: parseFloat($("#cameraHY").value)
+	};
+
+	draw();
+}
 
 function coordenadaVista (ponto) {
 	// ortogonalizar V
@@ -17,12 +49,14 @@ function coordenadaVista (ponto) {
 		y: camera.N.z * camera.V.x - camera.N.x * camera.V.z, 
 		z: camera.N.x * camera.V.y - camera.N.y * camera.V.x
 	};
+	console.log(U);
 	// Normalização
 	var alpha = {
 		x: normalizar(U),
 		y: normalizar(vLinha),
 		z: normalizar(camera.N)
 	};
+	console.log(alpha);
 	var matrizTransformacao = [
 		[alpha.x.x, alpha.x.y, alpha.x.z],
 		[alpha.y.x, alpha.y.y, alpha.y.z],
@@ -33,24 +67,20 @@ function coordenadaVista (ponto) {
 	return multiplicarMatriz(matrizTransformacao, [[subPonto.x],[subPonto.y],[subPonto.z]]);
 }
 
-//var ponto = new Point(1, -3, -5);
-//console.log(coordenadaVista(ponto));
-
 function draw (data) {
 	try {
-		var vertices = [];
-		var triangulos = [];
+		if (data) {
+			var data = data.split('\n');
+			var vLen = data[0].split(' ')[0];
+			var tLen = data[0].split(' ')[1];
 
-		var data = data.split('\n');
-		var vLen = data[0].split(' ')[0];
-		var tLen = data[0].split(' ')[1];
+			for (var i = 1; i <= parseInt(vLen); i++) {
+				vertices.push(data[i].split(' '));
+			}
 
-		for (var i = 1; i <= parseInt(vLen); i++) {
-			vertices.push(data[i].split(' '));
-		}
-
-		for (var i = parseInt(vLen) + 1; i < data.length - 1; i++) {
-			triangulos.push(data[i].split(' '));
+			for (var i = parseInt(vLen) + 1; i < data.length - 1; i++) {
+				triangulos.push(data[i].split(' '));
+			}
 		}
 
 		/*var minX = parseFloat(vertices[0][0]);
@@ -73,9 +103,9 @@ function draw (data) {
 
 		for (var i = 0; i < triangulos.length; i++) {
 			var verticesTriangulo = [
-				[vertices[triangulos[i][0] - 1][0], vertices[triangulos[i][0] - 1][1]], 
-				[vertices[triangulos[i][1] - 1][0], vertices[triangulos[i][1] - 1][1]], 
-				[vertices[triangulos[i][2] - 1][0], vertices[triangulos[i][2] - 1][1]]
+				[vertices[triangulos[i][0] - 1][0], vertices[triangulos[i][0] - 1][1], vertices[triangulos[i][0] - 1][2]], 
+				[vertices[triangulos[i][1] - 1][0], vertices[triangulos[i][1] - 1][1], vertices[triangulos[i][1] - 1][2]], 
+				[vertices[triangulos[i][2] - 1][0], vertices[triangulos[i][2] - 1][1], vertices[triangulos[i][2] - 1][2]]
 			];
 
 			for (var j = 0; j < verticesTriangulo.length; j++) {
@@ -83,12 +113,15 @@ function draw (data) {
 				var Yn = ((parseFloat(verticesTriangulo[j][1]) - minY) / (maxY - minY)) * (500 - 1);
 				var Zn = ((parseFloat(verticesTriangulo[j][2]) - minY) / (maxY - minY)) * (500 - 1);*/
 
+				
 				var vista = coordenadaVista(new Point(verticesTriangulo[j][0], verticesTriangulo[j][1], verticesTriangulo[j][2]));
-				console.log(vista);
+				
+				var Xs = (camera.d / camera.hX) * (vista[0][0] / vista[2][0]);
+				var Ys = (camera.d / camera.hY) * (vista[1][0] / vista[2][0]);
 				
 				ctx.beginPath();
 				ctx.fillStyle = '#FFF';
-				ctx.fillRect(vista.x, vista.y, 1, 1); 
+				ctx.fillRect(Xs, Ys, 1, 1); 
 				ctx.stroke();
 			}
 		}
