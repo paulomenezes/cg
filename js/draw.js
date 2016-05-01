@@ -7,6 +7,22 @@ var camera = {
 	hY: 1
 };
 
+function initialize () {
+	$("#cameraCX").value = camera.C.x;
+	$("#cameraCY").value = camera.C.y;
+	$("#cameraCZ").value = camera.C.z;
+	$("#cameraNX").value = camera.N.x;
+	$("#cameraNY").value = camera.N.y;
+	$("#cameraNZ").value = camera.N.z;
+	$("#cameraVX").value = camera.V.x;
+	$("#cameraVY").value = camera.V.y;
+	$("#cameraVZ").value = camera.V.z;
+	$("#cameraD").value = camera.d;
+	$("#cameraHX").value = camera.hX;
+	$("#cameraHY").value = camera.hY;
+};
+initialize();
+
 var vertices = [];
 var triangulos = [];
 
@@ -37,7 +53,11 @@ function update () {
 	};
 
 	draw();
+
+	b = false;
 }
+
+var b = false;
 
 function coordenadaVista (ponto) {
 	// ortogonalizar V
@@ -49,21 +69,25 @@ function coordenadaVista (ponto) {
 		y: camera.N.z * camera.V.x - camera.N.x * camera.V.z, 
 		z: camera.N.x * camera.V.y - camera.N.y * camera.V.x
 	};
-	console.log(U);
 	// Normalização
 	var alpha = {
 		x: normalizar(U),
 		y: normalizar(vLinha),
 		z: normalizar(camera.N)
 	};
-	console.log(alpha);
 	var matrizTransformacao = [
 		[alpha.x.x, alpha.x.y, alpha.x.z],
 		[alpha.y.x, alpha.y.y, alpha.y.z],
 		[alpha.z.x, alpha.z.y, alpha.z.z]
 	];
+	if (!b) {
+		console.log(U);
+		console.log(alpha.x);
+		console.log(matrizTransformacao);
+		b = true;
+	}
 
-	var subPonto = subtracaoPontos(camera.C, ponto);
+	var subPonto = subtracaoPontos(ponto, camera.C);
 	return multiplicarMatriz(matrizTransformacao, [[subPonto.x],[subPonto.y],[subPonto.z]]);
 }
 
@@ -109,11 +133,6 @@ function draw (data) {
 			];
 
 			for (var j = 0; j < verticesTriangulo.length; j++) {
-				/*var Xn = ((parseFloat(verticesTriangulo[j][0]) - minX) / (maxX - minX)) * (500 - 1);
-				var Yn = ((parseFloat(verticesTriangulo[j][1]) - minY) / (maxY - minY)) * (500 - 1);
-				var Zn = ((parseFloat(verticesTriangulo[j][2]) - minY) / (maxY - minY)) * (500 - 1);*/
-
-				
 				var vista = coordenadaVista(new Point(verticesTriangulo[j][0], verticesTriangulo[j][1], verticesTriangulo[j][2]));
 				
 				var Xs = (camera.d / camera.hX) * (vista[0][0] / vista[2][0]);
