@@ -27,6 +27,7 @@ var vertices = [];
 var triangulos = [];
 
 var color = false;
+var showVertices = false;
 
 function $ (element) {
 	return document.querySelector(element);
@@ -55,6 +56,7 @@ function update () {
 	};
 
 	color = $("#color").checked;
+	showVertices = $("#vertices").checked;
 
 	draw();
 }
@@ -134,8 +136,8 @@ function draw (data) {
 
 				var outroPonto = normalizar(new Point(Xs, Ys, 0));
 
-				var xi = (((Xs + 1) / 2) * 500);
-				var xj = (500 - ((Ys + 1) / 2) * 500);
+				var xi = (((Xs + 1) / 2) * canvas.width);
+				var xj = (canvas.height - ((Ys + 1) / 2) * canvas.height);
 
 				triV.push({
 					x: xi, 
@@ -170,7 +172,7 @@ function draw (data) {
 				triV.push({
 					x: v4x,
 					y: triV[1].y
-				})
+				});
 
 				ctx.fillStyle = getRndColor();
 				drawTopBottom(triV, a1, a2);
@@ -181,11 +183,13 @@ function draw (data) {
 				drawBottomTop(triV, a1, a2);
 			}
 
-			/*ctx.fillStyle = '#FFF';
-			for (var j = 0; j < triV.length; j++) {
-				ctx.beginPath();
-				ctx.fillRect(triV[j].x, triV[j].y, 1, 1);
-			}*/
+			if (showVertices) {
+				ctx.fillStyle = '#FFF';
+				for (var j = 0; j < triV.length; j++) {
+					ctx.beginPath();
+					ctx.fillRect(triV[j].x, triV[j].y, 1, 1);
+				}
+			}
 		}
 	} catch (error) {
 		console.log(error);
@@ -197,18 +201,31 @@ function drawTopBottom (triV, a1, a2) {
 	var xMin = triV[0].x;
 	var xMax = triV[0].x;
 
-	if (triV[0].x > triV[3].x || triV[0].x < triV[1].x) {
-		var aux = a1;
-		a1 = a2;
-		a2 = aux;
-	}
-
+	var invert = false;
 	for (var j = triV[0].y; j < triV[1].y; j++) {
 		for (var k = xMin; k < xMax; k++) {
+			invert = true;
 			ctx.fillRect(k, j, 1, 1);
 		}
 		xMin += 1 / a1;
 		xMax += 1 / a2;
+	}
+
+	if (!invert) {
+		xMin = triV[0].x;
+		xMax = triV[0].x;
+
+		var aux = a1;
+		a1 = a2;
+		a2 = aux;
+
+		for (var j = triV[0].y; j < triV[1].y; j++) {
+			for (var k = xMin; k <= xMax; k++) {
+				ctx.fillRect(k, j, 1, 1);
+			}
+			xMin += 1 / a1;
+			xMax += 1 / a2;
+		}
 	}
 }
 
@@ -216,18 +233,31 @@ function drawBottomTop (triV, a1, a2) {
 	var xMin = triV[2].x;
 	var xMax = triV[2].x;
 
-	if (triV[2].x > triV[3].x || triV[2].x < triV[1].x) {
-		var aux = a1;
-		a1 = a2;
-		a2 = aux;
-	}
-
+	var invert = false;
 	for (var j = triV[2].y; j >= triV[1].y; j--) {
-		for (var k = xMax; k >= xMin; k--) {
+		for (var k = xMax; k > xMin; k--) {
+			invert = true;
 			ctx.fillRect(k, j, 1, 1);
 		}
 		xMin -= 1 / a2;
 		xMax -= 1 / a1;
+	}
+
+	if (!invert) {
+		xMin = triV[2].x;
+		xMax = triV[2].x;
+
+		var aux = a1;
+		a1 = a2;
+		a2 = aux;
+
+		for (var j = triV[2].y; j >= triV[1].y; j--) {
+			for (var k = xMax; k >= xMin; k--) {
+				ctx.fillRect(k, j, 1, 1);
+			}
+			xMin -= 1 / a2;
+			xMax -= 1 / a1;
+		}
 	}
 }
 
@@ -239,10 +269,10 @@ function swap (array, i, j) {
 
 function getRndColor() {
 	if (color) {
-	    var r = 255*Math.random()|0,
-	        g = 255*Math.random()|0,
-	        b = 255*Math.random()|0;
-	    return 'rgb(' + r + ',' + g + ',' + b + ')';
+		var r = 255*Math.random()|0,
+			g = 255*Math.random()|0,
+			b = 255*Math.random()|0;
+		return 'rgb(' + r + ',' + g + ',' + b + ')';
 	} else {
 		return '#FFF';
 	}
