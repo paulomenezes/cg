@@ -7,6 +7,17 @@ var camera = {
 	hY: 2
 };
 
+var cores = {
+	Iamb: { R: 255, G: 0, B: 0 },
+	Il: { R: 0, G: 0, B: 255 },
+	Ka: 0.4,
+	Ks: 0.4,
+	n: 5,
+	Kd: { x: 0.5, y: 0.5, z: 0.5 },
+	Od: { x: 0.5, y: 0.5, z: 0.5 },
+	Pl: { x: 0, y: 0, z: 0 }
+};
+
 function initialize () {
 	$("#cameraCX").value = camera.C.x;
 	$("#cameraCY").value = camera.C.y;
@@ -123,6 +134,73 @@ function draw (data) {
 				[vertices[triangulos[i][2] - 1][0], vertices[triangulos[i][2] - 1][1], vertices[triangulos[i][2] - 1][2]]
 			];
 
+			// Triangle normal
+			var V = subtracaoPontos2(verticesTriangulo[1], verticesTriangulo[0]);
+			var W = subtracaoPontos2(verticesTriangulo[2], verticesTriangulo[0]);
+
+			//console.log('triV', verticesTriangulo);
+
+			//console.log('V', V);
+			//console.log('W', W);
+
+			var normalTriangulo = {
+				x: (V.y * W.z)  - (V.z * W.y),
+				y: (V.z * W.x)  - (V.x * W.z),
+				z: (V.x * W.y)  - (V.y * W.x)
+			};
+
+			//console.log('normalTriangulo', normalTriangulo);
+
+			var normal = normalizar(normalTriangulo);
+			var luz = normalizar(camera.N);
+
+			var NxL = produtoEscalar(normal, luz);
+
+			var R = {
+				x: (2 * NxL * normal.x) - luz.x,
+				y: (2 * NxL * normal.y) - luz.y,
+				z: (2 * NxL * normal.z) - luz.z
+			};
+
+			//console.log('R', R);
+
+			var RxV = produtoEscalar(R, camera.V);
+
+			//console.log('RxV', RxV);
+
+			var Is = {
+				x: 0, //Math.pow(RxV, cores.n) * cores.Ks * cores.Il.R,
+				y: 0, //Math.pow(RxV, cores.n) * cores.Ks * cores.Il.G,
+				z: 0 //Math.pow(RxV, cores.n) * cores.Ks * cores.Il.B
+			};
+
+			//console.log('Is', Is);
+			//break;
+
+			var Id = {
+				x: NxL * cores.Kd.x * cores.Od.x * cores.Il.R,
+				y: NxL * cores.Kd.y * cores.Od.y * cores.Il.G,
+				z: NxL * cores.Kd.z * cores.Od.z * cores.Il.B
+			};
+
+			var Ia = {
+				x: (cores.Iamb.R * cores.Ka),
+				y: (cores.Iamb.G * cores.Ka),
+				z: (cores.Iamb.B * cores.Ka)
+			};
+
+			//console.log('Id', Id);
+
+			var cor = {
+				R: Is.x + Id.x + Ia.x,
+				G: Is.y + Id.y + Ia.y,
+				B: Is.z + Id.z + Ia.z
+			};
+
+			cor.R = cor.R < 0 ? 0 : cor.R;
+			cor.G = cor.G < 0 ? 0 : cor.G;
+			cor.B = cor.B < 0 ? 0 : cor.B;
+
 			var triV = [];
 
 			for (var j = 0; j < verticesTriangulo.length; j++) {
@@ -151,17 +229,18 @@ function draw (data) {
 
 			var a1 = 0;
 			var a2 = 0;
+
+			ctx.fillStyle = 'rgb(' + cor.R + ', ' + cor.G + ', ' + cor.B + ')'
+
 			if (triV[1].y == triV[2].y) {
 				a1 = (triV[2].y - triV[0].y) / (triV[2].x - triV[0].x);
 				a2 = (triV[1].y - triV[0].y) / (triV[1].x - triV[0].x);
 
-				ctx.fillStyle = getRndColor();
 				drawTopBottom(triV, a1, a2);
 			} else if (triV[0].y == triV[1].y) {
 				a1 = (triV[0].y - triV[2].y) / (triV[0].x - triV[2].x);
 				a2 = (triV[1].y - triV[2].y) / (triV[1].x - triV[2].x);
 
-				ctx.fillStyle = getRndColor();
 				drawBottomTop(triV, a1, a2);
 			} else {
 				var v4x = (triV[0].x + ((triV[1].y - triV[0].y) / (triV[2].y - triV[0].y)) * (triV[2].x - triV[0].x));
@@ -174,7 +253,6 @@ function draw (data) {
 					y: triV[1].y
 				});
 
-				ctx.fillStyle = getRndColor();
 				drawTopBottom(triV, a1, a2);
 
 				a1 = (triV[0].y - triV[2].y) / (triV[0].x - triV[2].x);

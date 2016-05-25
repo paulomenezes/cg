@@ -25,6 +25,10 @@ function subtracaoPontos (ponto1, ponto2) {
 	return new Point(ponto2.x - ponto1.x, ponto2.y - ponto1.y, ponto2.z - ponto1.z);	
 }
 
+function subtracaoPontos2 (ponto1, ponto2) {
+	return new Point(ponto2[0] - ponto1[0], ponto2[1] - ponto1[1], ponto2[2] - ponto1[2]);	
+}
+
 function produtoEscalar (vetor1, vetor2) {
 	return (vetor1.x * vetor2.x) + (vetor1.y * vetor2.y) + (vetor1.z * vetor2.z);
 }
